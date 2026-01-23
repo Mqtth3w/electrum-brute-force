@@ -33,7 +33,7 @@ def create_wallet(wallet_number):
         wallet_path
     ])
     print("Wallet created at:", wallet_path)
-    return wallet_path
+    return seed, wallet_path
 
 def electrum(info, wallet_path, args):
     print(info)
@@ -44,14 +44,16 @@ def electrum(info, wallet_path, args):
         ] + args)
     return result
 
-def print_balance(btc):
+def print_balance(cbtc, ubtc):
     green = "\033[92m"
     red = "\033[91m"
     reset = "\033[0m"
     if btc > 0:
-        print(f"{green}Confirmed BTC: {btc}{reset}")
+        print(f"{green}Confirmed BTC: {cbtc}{reset}")
+        print(f"{green}Unconfirmed BTC: {ubtc}{reset}")
     elif btc > 1:
-        print(f"{red}Confirmed BTC: {btc}{reset}")
+        print(f"{red}Confirmed BTC: {cbtc}{reset}")
+        print(f"{red}Unconfirmed BTC: {ubtc}{reset}")
     else:
         print(f"Confirmed BTC: {btc}")
 
@@ -63,7 +65,7 @@ if __name__ == "__main__":
             "-d"
         ])
     for i in range(226, 300):
-        wallet = create_wallet(i)
+        seed, wallet = create_wallet(i)
         electrum("Loading wallet...", wallet, ["load_wallet"])
         balance = json.loads(electrum("Getting balance...", wallet, ["getbalance"]))
         confirmed = int(balance["confirmed"]) / 1e8
@@ -71,6 +73,8 @@ if __name__ == "__main__":
         print_balance(confirmed)
         print_balance(unconfirmed)
         if confirmed + unconfirmed > 0:
+            with open("./relevant_seeds.txt", "a", encoding="utf-8") as f:
+                f.write(f"\n\n{seed}\nBalance BTC: {confirmed + unconfirmed}")
             time.sleep(10)
     print("Finished, stopping electrum...")
     run([
