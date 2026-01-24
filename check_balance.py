@@ -64,24 +64,29 @@ def print_balance(cbtc, ubtc):
         print(f"Unconfirmed BTC: {ubtc}")
 
 if __name__ == "__main__":
-    print("Starting electrum...")
-    run([
-            "electrum",
-            "daemon",
-            "-d"
-        ])
-    for i in range(1, 300):
-        seed, wallet = create_wallet(i)
-        electrum("Loading wallet...", wallet, ["load_wallet"])
-        balance = json.loads(electrum("Getting balance...", wallet, ["getbalance"]))
-        confirmed = int(balance["confirmed"]) / 1e8
-        unconfirmed = int(balance.get("unconfirmed", 0)) / 1e8
-        print_balance(confirmed, unconfirmed)
-        if confirmed + unconfirmed > 0:
-            with open("./relevant_seeds.txt", "a", encoding="utf-8") as f:
-                f.write(f"\n\n{wallet}\n{seed}\nTotal balance BTC: {confirmed + unconfirmed}")
-    print("Finished, stopping electrum...")
-    run([
-            "electrum",
-            "stop"
-        ])
+    stopped = False
+    try:
+        print("Starting electrum...")
+        run([
+                "electrum",
+                "daemon",
+                "-d"
+            ])
+        for i in range(1, 300):
+            seed, wallet = create_wallet(i)
+            electrum("Loading wallet...", wallet, ["load_wallet"])
+            balance = json.loads(electrum("Getting balance...", wallet, ["getbalance"]))
+            confirmed = int(balance["confirmed"]) / 1e8
+            unconfirmed = int(balance.get("unconfirmed", 0)) / 1e8
+            print_balance(confirmed, unconfirmed)
+            if confirmed + unconfirmed > 0:
+                with open("./relevant_seeds.txt", "a", encoding="utf-8") as f:
+                    f.write(f"\n\n{wallet}\n{seed}\nTotal balance BTC: {confirmed + unconfirmed}")
+    except KeyboardInterrupt:  
+        stopped = True
+    finally:
+        print(f"{'Finished' if not stopped else 'Interrupt'}, stopping electrum...")
+        run([
+                "electrum",
+                "stop"
+            ])
