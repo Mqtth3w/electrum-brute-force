@@ -5,10 +5,7 @@
 
 import subprocess
 import sys
-import os
 import platform
-import hmac
-import hashlib
 import json
 import time
 from electrum_seed import *
