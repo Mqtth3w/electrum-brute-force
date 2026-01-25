@@ -8,6 +8,7 @@ import sys
 import platform
 import json
 import time
+import re
 from electrum_seed import *
 
 def run(cmd):
@@ -17,19 +18,11 @@ def run(cmd):
         sys.exit(1)
     return result.stdout.strip()
 
-def create_wallet(wallet_number):
+def create_wallet(wallet_path):
     print("\n\n")
     print("Creating wallet from seed...")
     seed = generate_electrum_seed("segwit")
     print(seed)
-    system = platform.system()
-    wallet_path = ""
-    if system == "Linux" or system == "Darwin":
-        wallet_path = os.path.expanduser(f"~/.electrum/wallets/wallet_{wallet_number}")
-    elif system == "Windows":
-        wallet_path = os.path.expanduser(f"~/AppData/Roaming/Electrum/wallets/wallet_{wallet_number}")
-    else: 
-        raise RuntimeError(f"Unsupported OS: {system}")
     run([
         "electrum",
         "restore",
@@ -38,7 +31,7 @@ def create_wallet(wallet_number):
         wallet_path
     ])
     print("Wallet created at:", wallet_path)
-    return seed, wallet_path
+    return seed
 
 def electrum(info, wallet_path, args):
     print(info)
@@ -60,6 +53,19 @@ def print_balance(cbtc, ubtc):
         print(f"Confirmed BTC: {cbtc}")
         print(f"Unconfirmed BTC: {ubtc}")
 
+
+def get_latest_wallet_number(folder_path):
+    wallet_numbers = []
+    for name in os.listdir(folder_path):
+        full_path = os.path.join(folder_path, name)
+        if os.path.isfile(full_path):
+            match = re.fullmatch(r"wallet_(\d+)", name)
+            if match:
+                wallet_numbers.append(int(match.group(1)))
+    if not wallet_numbers:
+        return 1
+    return max(wallet_numbers) + 1
+
 if __name__ == "__main__":
     stopped = False
     try:
@@ -69,8 +75,18 @@ if __name__ == "__main__":
                 "daemon",
                 "-d"
             ])
-        for i in range(1, 300):
-            seed, wallet = create_wallet(i)
+        system = platform.system()
+        base_wallet_path = ""
+        if system == "Linux" or system == "Darwin":
+            base_wallet_path = os.path.expanduser(f"~/.electrum/wallets")
+        elif system == "Windows":
+            base_wallet_path = os.path.expanduser(f"~/AppData/Roaming/Electrum/wallets")
+        else:
+            raise RuntimeError(f"Unsupported OS: {system}")
+        latest_wallet_index = get_latest_wallet_number(base_wallet_path)
+        for i in range(latest_wallet_index, 10000):
+            wallet = f"{base_wallet_path}/wallet_{i}"
+            seed = create_wallet(wallet)
             electrum("Loading wallet...", wallet, ["load_wallet"])
             balance = json.loads(electrum("Getting balance...", wallet, ["getbalance"]))
             confirmed = int(balance["confirmed"]) / 1e8
