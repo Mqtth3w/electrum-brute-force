@@ -17,8 +17,8 @@ SEED_PREFIXES = {
     "segwit": "100",
 }
 
-def mnemonic_encode(data: bytes):
-    """Encode bytes into Electrum mnemonic (base-2048)."""
+def mnemonic_encode(data: bytes) -> str:
+    """Encode bytes into Electrum mnemonic (base-2048)"""
     num = int.from_bytes(data, "big")
     words = []
     while num:
@@ -27,13 +27,15 @@ def mnemonic_encode(data: bytes):
     return " ".join(words)
 
 def seed_version(mnemonic: str) -> str:
+    """"""
     return hmac.new(
         b"Seed version",
         mnemonic.encode(),
         hashlib.sha512
     ).hexdigest()
 
-def generate_electrum_seed(seed_type="segwit", entropy_bytes=16):
+def generate_electrum_seed(seed_type: str = "segwit", entropy_bytes: int = 16) -> str:
+    """Generate a seed according to the Electrum standard"""
     prefix = SEED_PREFIXES[seed_type]
     while True:
         entropy = os.urandom(entropy_bytes)
