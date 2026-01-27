@@ -32,7 +32,7 @@ def parse_json(output: str) -> dict:
         return {}
 
 def electrum(info: str, wallet_path: str, args: list) -> dict:
-    """Run a electrum command for a specified wallet"""
+    """Run a Electrum command for a specified wallet"""
     print(info)
     result = run([
             "electrum",
