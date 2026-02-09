@@ -7,7 +7,8 @@ Its only for education purposes. You are responsible for what you do, do not do 
 
 ---
 ## Usage
-Install [Electrum](https://electrum.org/#download) and make it available on your terminal
+Install - [Electrum](https://electrum.org/#download) and make it available on your terminal
+- It requires internet connection
 ```cmd
 python ./check_balance.py
 ```
