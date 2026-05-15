@@ -1,4 +1,4 @@
-# electrum-btrute-force
+# electrum-brute-force
 Electrum Bitcoin wallet seed brute force
 
 ---
